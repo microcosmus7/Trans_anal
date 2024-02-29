@@ -1,7 +1,11 @@
 # for when i really need it
 source("libraries.R")
+# from work
 setwd("C:/Users/a.bateman/Documents/GITHUB/Trans_anal")
+# from home
 setwd("~/PhD/PhD/projects/transect/Trans_anal/Trans_anal")
+
+
 Hoppers <- read.table("Monitoring_sheet.txt", header = TRUE)
 
 
@@ -44,3 +48,18 @@ ggplot(data=mean, aes(Group.1,x))+geom_point(colour="black")+
   stat_smooth(method = "lm", colour="black", formula = y ~ x + I(x^2))+
   theme_bw(base_size = 19)
 
+ggplot(aes(x = years)) + 
+  geom_histogram(binwidth = 1)
+
+Hoppers$category[Hoppers$Hour < 9:59] <- "9"
+Hoppers$category[Hoppers$Hour > 10:00 & Hoppers$Hour < 10:59] <- "10"
+Hoppers$category[Hoppers$Hour > 11:00 & Hoppers$Hour < 11:59] <- "11"
+Hoppers$category[Hoppers$Hour > 12:00 & Hoppers$Hour < 12:59] <- "12"
+Hoppers$category[Hoppers$Hour > 13:00 & Hoppers$Hour < 13:59] <- "13"
+Hoppers$category[Hoppers$Hour > 14:00 & Hoppers$Hour < 14:59] <- "14"
+df$category[df$a > 0.6] <- "high"
+
+ggplot(data=Hoppers, aes(x=Hour)) +
+  geom_histogram( binwidth=3) +
+  theme(    plot.title = element_text(size=15)
+  )
