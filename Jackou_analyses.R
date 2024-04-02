@@ -1,10 +1,14 @@
-# for when i really need it
-source("libraries.R")
+
 # from work
 setwd("C:/Users/a.bateman/Documents/GITHUB/Trans_anal")
 # from home
-setwd("~/PhD/PhD/projects/transect/Trans_anal/Trans_anal")
- 
+setwd("~/PhD/PhD/projects/transect/Trans_anal")
+
+
+# libraries for hoppers and jacks
+source("libraries.R")
+
+# jack doc
 Jack <- read.csv("Jackdawta.csv", sep=";", stringsAsFactors=TRUE)  
 
 # see structure of data
@@ -95,10 +99,3 @@ summary(fit)
 plot(Jackou$volum_ou~Jackou$clutch_size)
 
 
-Jackpoll <- subset(Jack, edat != "adult" & edat!="ou" & edat!="poll")
-
-plot(Jackpoll$pes~Jackpoll$julian)
-
-p<-lmer(pes ~ julian + (1|id_individu) + (1|id_individu/idCaixaNiu) , data = Jackpoll)
-summary(p)
-rsq(p)

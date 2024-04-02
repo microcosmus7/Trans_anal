@@ -3,7 +3,7 @@ source("libraries.R")
 # from work
 setwd("C:/Users/a.bateman/Documents/GITHUB/Trans_anal")
 # from home
-setwd("~/PhD/PhD/projects/transect/Trans_anal/Trans_anal")
+setwd("~/PhD/PhD/projects/transect/Trans_anal")
 
 Hoppers <- read.csv("Hoppers_a.csv", sep=";", stringsAsFactors=TRUE)  
 Jack <- read.csv("Jackdawta.csv", sep=";", stringsAsFactors=TRUE)  
@@ -23,6 +23,10 @@ library(lme4)
 library(dplyr)
 library(DHARMa)
 
+
+## julian date
+Hoppers$dat<- as.Date(Hoppers$Date, "%d/%m/%Y")
+Hoppers$julian <- as.numeric(format(Hoppers$dat, "%j"))
 ## summ groups disregarding family and size.
 
 Hoppers <- Hoppers %>% 
@@ -100,9 +104,29 @@ summary(fit)
 ######################### JOINING DATA FRAMES #####################
 str(Jack)
 
-Jackou <- subset(Jack,edat == "ou")
-Jackpoll <- subset(Jack, edat != "adult"&edat!="ou")
+Jackhop <- merge(Jackpoll.na, Hoppers, by = "julian", all.x = TRUE, all.y = TRUE)
 
+### NExt steps
+
+## I want to see whether the abundance of orthopters matches growth rate of chicks
+## I could instead see the number of chicks at each age stage and the number of orthopters, as i know growth rate is greatest between 
+
+sum_stats <- Jackhop %>%
+  group_by(julian, AgeAtWeighing) %>%
+  summarise(ChickCount = n_distinct(metalica_esq))
+
+sum_stat <- Jackhop %>%
+  group_by(julian) %>%
+  summarise(mean_orth = mean(Orth), SD_orth = sd(Orth))
+
+summ <- merge(sum_stat, sum_stats, by = "julian", all.x = TRUE, all.y = TRUE)
+
+ggplot() +
+  geom_point(data = summ, aes(x = julian, y = ChickCount, color = as.factor(AgeAtWeighing)), stat = "identity", fill = "blue", alpha = 0.5) +
+  geom_point(data = summ, aes(x = julian, y = mean_orth, group = 1), color = "red") +
+  geom_abline(data = summ)
+  labs(x = "Age at Weighing (days) / Julian Date", y = "Count", title = "Chick Count and Total Orthopter Count") +
+  theme_minimal()
 
 Jack2<-subset(Jack1,)
 
