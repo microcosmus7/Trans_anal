@@ -105,7 +105,10 @@ Jackou_t <- merge(Jackou, Time, by = c("julian", "idEstructura"))
 Jackou_t <- subset(Jackou_t, select = -c(id_Social,any.y,data.y,X,X.1,X.2,X.3,X.4,X.5,X.6,X.7,dat.y))
 
 ##first convert time to character
-Jackou_t$hora_c <- as.character(Jackou_t$hora)
+Jackou_t <- Jackou_t %>%
+  mutate(hora_c = as.character(hora),  # Convert time to character
+         hora_c = sub("^([0-9]):", "0\\1:", hora_c))  # Add leading zero if hour has one digit
+print(Jackou_t$hora_c)
 
 # Function to convert time string to minutes past midnight
 time_to_minutes <- function(time_str) {
@@ -114,28 +117,25 @@ time_to_minutes <- function(time_str) {
   total_minutes <- hours * 60 + minutes
   return(total_minutes)
 }
+
 # Apply the function to the 'time' column
-Jackou_t$hora_cont <- unlist(lapply(Jackou_t$hora, time_to_minutes))
+Jackou_t$hora_cont <- unlist(lapply(Jackou_t$hora_c, time_to_minutes))
 
 View(Jackou_t)
 
-# Convert time column to POSIXct format
-Jackou_t$hora <- as.POSIXct(Jackou_t$hora, format = "%H:%M")
+assign_time_label <- function(time_str) {
+  ifelse(time_str < "07:30", "before_early_morning",
+         ifelse(time_str < "11:00", "early_morning",
+                ifelse(time_str < "13:00", "morning",
+                       ifelse(time_str < "15:00", "midday",
+                              ifelse(time_str < "17:00", "afternoon",
+                                     ifelse(time_str < "20:00", "late_afternoon", "evening"))))))
+}
+# Apply the custom function to assign labels to time intervals
+Jackou_t <- Jackou_t %>%
+  mutate(categoria_hora = assign_time_label(hora_c))
 
-# Define time intervals
-intervals <- c(as.POSIXct("07:30", format = "%H:%M"),
-               as.POSIXct("11:00", format = "%H:%M"),
-               as.POSIXct("13:00", format = "%H:%M"),
-               as.POSIXct("15:00", format = "%H:%M"),
-               as.POSIXct("17:00", format = "%H:%M"),
-               as.POSIXct("20:00", format = "%H:%M"))
-
-# Define labels for time categories
-labels <- c("early_morning", "morning", "midday", "afternoon", "late_afternoon")
-
-# Add a column with time categories
-Jackou_t$categoria_hora <- cut(Jackou_t$hora, breaks = intervals, labels = labels, right = FALSE)
-
+View(Jackou_t)
 
 ########### SIMPLE WEIGHT - VOLUME RELATIONSHIP ##############
 #### weight is related to volume, little space for location or nest effect, but more nest effect than location.
@@ -213,7 +213,7 @@ ggplot(egg_summary, aes(x = idEstructura, y = mean_dens)) +
 ######################### WHY? IS IT TIME OF MEASUREMENT (WEIGHT)? ########################
 
 # see whether time affects egg weight. What should be random? tower and nest. What should be fixed? time
-fit <- lmer(pes ~ idEstructura + (1|hora_cont), data = Jackou_t)
+fit <- lmer(pes ~ categoria_hora + (1|idEstructura), data = Jackou_t)
 summary(fit)
 
 Ja <- subset(Jackou_t, Jackou_t$egg_order==5)
@@ -446,4 +446,19 @@ summary(fit)
 
 plot(Jackou$volum_ou~Jackou$clutch_size)
 
+############# DISTRIBUTION OF LAYING DATES ###################
 
+J <- subset(Jackou, Jackou$certainty != "uncertain")
+Ja <- subset(J, J$egg_order==1)
+
+
+
+total <- aggregate(egg_order ~ julian, data = Ja, FUN = sum)
+View(total)
+barplot(total$egg_order,names.arg = total$julian, 
+     main = "Total Eggs Measured Per Day",
+     xlab = "Total Eggs",
+     ylab = "Frequency",
+     col = "skyblue",
+     border = "black")
+hist(J$egg_order,J$julian)

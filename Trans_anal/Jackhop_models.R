@@ -61,9 +61,9 @@ Hopper$period <- ifelse((Hopper$julian>=165&Hopper$julian<=175), 'F', Hopper$per
 
 Hopper$time <- as.numeric(gsub("\\:.*$", "", Hopper$Hour))
 Hopper$dayper <- Hopper$time
-Hopper$dayper <- ifelse(Hopper$time >= 9 & Hopper$time<=11, 'morning', Hopper$dayper)
-Hopper$dayper <- ifelse(Hopper$time > 11 & Hopper$time<=13, 'midday', Hopper$dayper)
-Hopper$dayper <- ifelse(Hopper$time > 13 & Hopper$time<=15, 'afternoon', Hopper$dayper)
+Hopper$dayper <- ifelse(Hopper$time >= 9 & Hopper$time<=11, 'early_morning', Hopper$dayper)
+Hopper$dayper <- ifelse(Hopper$time > 11 & Hopper$time<=13, 'morning', Hopper$dayper)
+Hopper$dayper <- ifelse(Hopper$time > 13 & Hopper$time<=15, 'midday', Hopper$dayper)
 
 Hopper <-subset(Hopper, Weather!= "CloudyRainyWindy")
 
